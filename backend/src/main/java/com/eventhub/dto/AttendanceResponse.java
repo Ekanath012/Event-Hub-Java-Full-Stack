@@ -1,0 +1,2 @@
+package com.eventhub.dto; import com.eventhub.entity.Attendance; import java.time.Instant;
+public record AttendanceResponse(Long id,Long eventId,Long registrationId,String registrationNumber,String studentName,Instant checkedInAt,String status){public static AttendanceResponse from(Attendance a){var r=a.getRegistration();return new AttendanceResponse(a.getId(),a.getEvent().getId(),r.getId(),r.getRegistrationNumber(),r.getUser().getFirstName()+" "+r.getUser().getLastName(),a.getCheckedInAt(),a.getStatus().name());}}

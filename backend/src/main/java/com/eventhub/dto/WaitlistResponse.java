@@ -1,0 +1,2 @@
+package com.eventhub.dto; import com.eventhub.entity.*; import java.time.Instant;
+public record WaitlistResponse(Long id,Long eventId,Long userId,String userName,Integer position,WaitlistStatus status,Instant joinedAt){public static WaitlistResponse from(WaitlistEntry w){return new WaitlistResponse(w.getId(),w.getEvent().getId(),w.getUser().getId(),w.getUser().getFirstName()+" "+w.getUser().getLastName(),w.getPosition(),w.getStatus(),w.getJoinedAt());}}

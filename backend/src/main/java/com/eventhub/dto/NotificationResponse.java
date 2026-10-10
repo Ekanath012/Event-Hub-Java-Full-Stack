@@ -1,0 +1,1 @@
+package com.eventhub.dto; import com.eventhub.entity.*; import java.time.Instant; public record NotificationResponse(Long id,String title,String message,NotificationType type,boolean read,Instant createdAt){public static NotificationResponse from(Notification n){return new NotificationResponse(n.getId(),n.getTitle(),n.getMessage(),n.getType(),n.isRead(),n.getCreatedAt());}}

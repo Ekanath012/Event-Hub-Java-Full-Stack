@@ -1,0 +1,1 @@
+package com.eventhub.dto; public record AnalyticsSummaryResponse(long totalEvents,long upcomingEvents,long completedEvents,long totalRegistrations,long totalAttendance,long waitlistCount,long cancellationCount){}

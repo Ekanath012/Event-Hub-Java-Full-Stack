@@ -1,0 +1,5 @@
+package com.eventhub.entity;
+import jakarta.persistence.*; import lombok.*; import java.time.Instant;
+@Entity @Table(name="notices",indexes={@Index(name="idx_notices_active",columnList="active"),@Index(name="idx_notices_created",columnList="created_at")})
+@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+public class Notice { @Id @GeneratedValue(strategy=GenerationType.IDENTITY) Long id; @Column(nullable=false,length=180) String title; @Column(nullable=false,columnDefinition="TEXT") String content; @Enumerated(EnumType.STRING) @Column(nullable=false,length=20) NoticePriority priority; @Column(nullable=false) boolean active; @ManyToOne(fetch=FetchType.LAZY,optional=false) @JoinColumn(name="created_by") User createdBy; @Column(name="created_at",nullable=false,updatable=false) Instant createdAt; @Column(name="updated_at",nullable=false) Instant updatedAt; @PrePersist void create(){Instant n=Instant.now();createdAt=n;updatedAt=n;} @PreUpdate void update(){updatedAt=Instant.now();}}

@@ -1,0 +1,1 @@
+package com.eventhub.repository; import com.eventhub.entity.Notice; import org.springframework.data.domain.*; import org.springframework.data.jpa.repository.*; public interface NoticeRepository extends JpaRepository<Notice,Long>{Page<Notice> findByActiveTrueOrderByCreatedAtDesc(Pageable p);Page<Notice> findAllByOrderByCreatedAtDesc(Pageable p);}
