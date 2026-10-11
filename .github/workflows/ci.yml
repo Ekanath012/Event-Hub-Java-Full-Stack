@@ -1,15 +1,10 @@
+
 name: EventHub CI
 
 on:
   push:
     branches: [main, master]
   pull_request:
-    branches: [main, master]
-  workflow_dispatch:
-
-concurrency:
-  group: eventhub-ci-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
 
 permissions:
   contents: read
@@ -18,7 +13,6 @@ jobs:
   backend:
     name: Backend tests
     runs-on: ubuntu-latest
-    timeout-minutes: 20
     defaults:
       run:
         working-directory: backend
@@ -35,13 +29,11 @@ jobs:
           cache: maven
 
       - name: Test
-        # Use ./mvnw if your project includes the Maven wrapper
         run: mvn -B test
 
   frontend:
     name: Frontend build
     runs-on: ubuntu-latest
-    timeout-minutes: 20
     defaults:
       run:
         working-directory: frontend
@@ -57,29 +49,30 @@ jobs:
           cache: npm
           cache-dependency-path: frontend/package-lock.json
 
-      - name: Install
-        run: npm ci --no-audit --no-fund
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
 
-      - name: Build
+      - name: Build frontend
         run: npm run build
 
   compose:
     name: Docker configuration
     runs-on: ubuntu-latest
     needs: [backend, frontend]
-    timeout-minutes: 20
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Validate Compose file
+      - name: Configure test environment
         run: |
           cp .env.example .env
           sed -i 's/change-this-local-password/ci-local-password/g' .env
           sed -i 's/change-this-root-password/ci-root-password/g' .env
           sed -i 's/replace-with-a-random-secret-at-least-32-characters-long/ci-jwt-secret-012345678901234567890123456789/g' .env
-          docker compose --env-file .env config >/dev/null
+
+      - name: Validate Compose file
+        run: docker compose config
 
       - name: Build Docker images
         run: docker compose build
@@ -87,26 +80,22 @@ jobs:
   security:
     name: Dependency and filesystem scan
     runs-on: ubuntu-latest
-    timeout-minutes: 20
     permissions:
       contents: read
-      security-events: write
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Trivy filesystem scan
-        uses: aquasecurity/trivy-action@v0.36.0
-        with:
-          scan-type: fs
-          scan-ref: .
-          severity: CRITICAL,HIGH
-          ignore-unfixed: true
-          exit-code: '1'
-
-      # Optional: upload scan results to GitHub Security tab
-      # - name: Upload Trivy SARIF to GitHub Security
-      #   uses: github/codeql-action/upload-sarif@v3
-      #   with:
-      #     sarif_file: trivy-results.sarif
+      - name: Run Trivy filesystem scan
+        run: |
+          docker run --rm \
+            -v "${GITHUB_WORKSPACE}:/workspace:ro" \
+            -w /workspace \
+            aquasec/trivy:0.75.0 \
+            fs \
+            --scanners vuln,misconfig,secret \
+            --severity HIGH,CRITICAL \
+            --ignore-unfixed \
+            --exit-code 1 \
+            .
