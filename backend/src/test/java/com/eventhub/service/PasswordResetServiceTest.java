@@ -47,7 +47,7 @@ class PasswordResetServiceTest {
         User user = User.builder().id(7L).email("student@example.com").firstName("Student")
                 .lastName("One").passwordHash("old-hash").role(Role.STUDENT).enabled(true).build();
         when(emailService.isEnabled()).thenReturn(true);
-        when(users.findByEmailIgnoreCase("student@example.com")).thenReturn(Optional.of(user));
+        when(users.findByEmailIgnoreCaseForUpdate("student@example.com")).thenReturn(Optional.of(user));
         when(resetTokens.save(any(PasswordResetToken.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         service.requestReset(" student@example.com ");
@@ -68,7 +68,7 @@ class PasswordResetServiceTest {
     @Test
     void requestResetDoesNotRevealOrSendWhenEmailIsUnknown() {
         when(emailService.isEnabled()).thenReturn(true);
-        when(users.findByEmailIgnoreCase("missing@example.com")).thenReturn(Optional.empty());
+        when(users.findByEmailIgnoreCaseForUpdate("missing@example.com")).thenReturn(Optional.empty());
 
         assertDoesNotThrow(() -> service.requestReset("missing@example.com"));
 
